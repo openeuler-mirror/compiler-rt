@@ -1,0 +1,12 @@
+diff -ruNa compiler-rt-7.0.0.src.old/CMakeLists.txt compiler-rt-7.0.0.src/CMakeLists.txt
+--- compiler-rt-7.0.0.src.old/CMakeLists.txt	2020-03-20 18:23:28.512249162 +0800
++++ compiler-rt-7.0.0.src/CMakeLists.txt	2020-03-20 17:37:26.462851376 +0800
+@@ -205,7 +205,7 @@
+   append_list_if(COMPILER_RT_HAS_FOMIT_FRAME_POINTER_FLAG -fomit-frame-pointer SANITIZER_COMMON_CFLAGS)
+ endif()
+ append_list_if(COMPILER_RT_HAS_FUNWIND_TABLES_FLAG -funwind-tables SANITIZER_COMMON_CFLAGS)
+-append_list_if(COMPILER_RT_HAS_FNO_STACK_PROTECTOR_FLAG -fno-stack-protector SANITIZER_COMMON_CFLAGS)
++#append_list_if(COMPILER_RT_HAS_FNO_STACK_PROTECTOR_FLAG -fno-stack-protector SANITIZER_COMMON_CFLAGS)
+ append_list_if(COMPILER_RT_HAS_FNO_SANITIZE_SAFE_STACK_FLAG -fno-sanitize=safe-stack SANITIZER_COMMON_CFLAGS)
+ append_list_if(COMPILER_RT_HAS_FVISIBILITY_HIDDEN_FLAG -fvisibility=hidden SANITIZER_COMMON_CFLAGS)
+ if(NOT COMPILER_RT_HAS_FVISIBILITY_HIDDEN_FLAG)
