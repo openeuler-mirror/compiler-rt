@@ -1,12 +1,10 @@
-%global crt_srcdir compiler-rt-%{version}%{?rc_ver:rc%{rc_ver}}.src
-
 Name:           compiler-rt
-Version:        7.0.0
-Release:        2
+Version:        10.0.0
+Release:	0
 Summary:        LLVM "compiler-rt" runtime libraries
 License:        NCSA or MIT
 URL:            http://llvm.org
-Source0:        http://llvm.org/releases/%{version}/%{crt_srcdir}.tar.xz
+Source0:        https://github.com/llvm/llvm-project/releases/download/llvmorg-%{version}/%{name}-%{version}.src.tar.xz
 BuildRequires:  gcc gcc-c++ cmake python3 python3-devel
 BuildRequires:  llvm-devel = %{version} llvm-static = %{version}
 
@@ -17,7 +15,7 @@ calls generated when a target doesn't have a short sequence of native
 instructions to implement a core IR operation.
 
 %prep
-%autosetup -n %{crt_srcdir} -p1
+%autosetup -n %{name}-%{version}.src -p1
 pathfix.py -i %{__python3} -pn .
 
 %build
@@ -52,6 +50,7 @@ for file in %{aarch64_blacklists} asan_blacklist.txt msan_blacklist.txt dfsan_bl
 done
 
 mv -v %{buildroot}%{_prefix}/lib/linux/libclang_rt* %{buildroot}%{_libdir}/clang/%{version}/lib
+mv -v %{buildroot}%{_prefix}/lib/linux/clang_rt* %{buildroot}%{_libdir}/clang/%{version}/lib
 mkdir -p %{buildroot}%{_libdir}/clang/%{version}/lib/linux/
 pushd %{buildroot}%{_libdir}/clang/%{version}/lib
 for i in *.a *.syms *.so; do
@@ -64,9 +63,13 @@ cd _build
 %files
 %defattr(-,root,root)
 %license LICENSE.TXT
+%{_bindir}/hwasan_symbolize
 %{_includedir}/*
 %{_libdir}/clang/%{version}
 
 %changelog
+* Thu Jun 04 2020 SimpleUpdate Robot <tc@openeuler.org>
+- Update to version 10.0.0
+
 * Thu Dec 5 2019 openEuler Buildteam <buildteam@openeuler.org> - 7.0.0-2
 - Package init
