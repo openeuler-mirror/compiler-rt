@@ -68,7 +68,7 @@ cd _build
 %{_libdir}/clang/%{version}
 
 %changelog
-* Thu Jun 04 2020 SimpleUpdate Robot <tc@openeuler.org>
+* Thu Jun 04 2020 SimpleUpdate Robot <tc@openeuler.org> - 10.0.0-0
 - Update to version 10.0.0
 
 * Thu Dec 5 2019 openEuler Buildteam <buildteam@openeuler.org> - 7.0.0-2
