@@ -4,7 +4,7 @@
 
 Name:		compiler-rt
 Version:	10.0.1
-Release:	1
+Release:	2
 Summary:	LLVM "compiler-rt" runtime libraries
 License:	NCSA or MIT
 URL:		http://llvm.org
@@ -28,8 +28,6 @@ instrumentation, and Blocks C language extension.
 
 %prep
 %autosetup -n %{crt_srcdir} -p1
-
-pathfix.py -i %{__python3} -pn lib/hwasan/scripts/hwasan_symbolize
 
 %build
 mkdir -p _build
@@ -104,6 +102,9 @@ fi
 %endif
 
 %changelog
+* Sat Sep 19 2020 Guoshuai Sun <sunguoshuai@huawei.com> - 10.0.1-2
+- Keep "/usr/bin/env python" instead of /usr/bin/python3 in hwasan_symbolize
+
 * Thu Jul 30 2020 Guoshuai Sun <sunguoshuai@huawei.com> - 10.0.1-1
 - Update to 10.0.1
 
