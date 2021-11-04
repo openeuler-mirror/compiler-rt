@@ -1,0 +1,16 @@
+diff -urN compiler-rt-8.0.1.src-orig/lib/sanitizer_common/sanitizer_platform_limits_posix.h compiler-rt-8.0.1.src/lib/sanitizer_common/sanitizer_platform_limits_posix.h
+--- compiler-rt-8.0.1.src-orig/lib/sanitizer_common/sanitizer_platform_limits_posix.h   2019-01-03 03:05:26.000000000 +0800
++++ compiler-rt-8.0.1.src/lib/sanitizer_common/sanitizer_platform_limits_posix.h        2021-11-10 17:08:02.966007183 +0800
+@@ -222,8 +222,12 @@
+     unsigned long __unused1;
+     unsigned long __unused2;
+ #else
++#ifdef __i386__
+     unsigned short mode;
+     unsigned short __pad1;
++#else
++    unsigned int mode;
++#endif
+     unsigned short __seq;
+     unsigned short __pad2;
+ #if defined(__x86_64__) && !defined(_LP64)
