@@ -4,7 +4,7 @@
 
 Name:		compiler-rt
 Version:	10.0.1
-Release:	3
+Release:	4
 Summary:	LLVM "compiler-rt" runtime libraries
 License:	NCSA or MIT
 URL:		http://llvm.org
@@ -52,7 +52,11 @@ cd _build
 
 # move blacklist/abilist files to where clang expect them
 mkdir -p %{buildroot}%{_libdir}/clang/%{version}/share
+
+# no lists are available on riscv64
+%ifnarch riscv64
 mv -v %{buildroot}%{_datadir}/*list.txt  %{buildroot}%{_libdir}/clang/%{version}/share/
+%endif
 
 # move sanitizer libs to better place
 %global libclang_rt_installdir lib/linux
@@ -103,6 +107,9 @@ fi
 %endif
 
 %changelog
+* Thu Jan 06 2022 lvxiaoqian<xiaoqian@nj.iscas.ac.cn> - 10.0.1-4
+- update spec for no lists are available on riscv64
+
 * Fri Sep 25 2020 Guoshuai Sun <sunguoshuai@huawei.com> - 10.0.1-3
 - hwasan_symbolize should run in python2 and python3, and python3 is default now
 
