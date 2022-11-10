@@ -3,7 +3,7 @@
 %global optflags %(echo %{optflags} -Dasm=__asm__)
 
 Name:		compiler-rt
-Version:	12.0.1
+Version:	13.0.1
 Release:	1
 Summary:	LLVM "compiler-rt" runtime libraries
 
@@ -48,8 +48,8 @@ cd _build
 %else
 	-DLLVM_LIBDIR_SUFFIX= \
 %endif
-	-DCOMPILER_RT_INCLUDE_TESTS:BOOL=OFF # could be on?
-
+	-DCOMPILER_RT_INCLUDE_TESTS:BOOL=OFF \
+	-DCMAKE_SKIP_RPATH:BOOL=ON
 %make_build
 
 %install
@@ -113,6 +113,10 @@ fi
 %endif
 
 %changelog
+* Tue Nov 29 2022 jchzhou <zhoujiacheng@iscas.ac.cn> - 13.0.1-1
+- Update to 13.0.1
+- Remove rpath
+
 * Mon Dec 27 2021 Chen Chen <chen_aka_jan@163.com> - 12.0.1-1
 - Update to 12.0.1
 
