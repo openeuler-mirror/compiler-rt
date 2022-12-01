@@ -3,23 +3,28 @@
 %global optflags %(echo %{optflags} -Dasm=__asm__)
 
 Name:		compiler-rt
-Version:	10.0.1
-Release:	3
+Version:	13.0.1
+Release:	1
 Summary:	LLVM "compiler-rt" runtime libraries
+
 License:	NCSA or MIT
 URL:		http://llvm.org
 Source0:	https://github.com/llvm/llvm-project/releases/download/llvmorg-%{version}/%{crt_srcdir}.tar.xz
-Patch0000:	0001-PATCH-std-thread-copy.patch
-Patch0001:      0002-hwasan_symbolize-should-run-in-python2-and-python3.patch
+Source2:	tstellar-gpg-key.asc
+Patch0:		0001-PATCH-compiler-rt-Workaround-libstdc-limitation-wrt..patch
 
 BuildRequires:	gcc
 BuildRequires:	gcc-c++
 BuildRequires:	cmake
+BuildRequires:	ninja-build
 BuildRequires:	python3
 # We need python3-devel for pathfix.py.
 BuildRequires:	python3-devel
 BuildRequires:	llvm-devel = %{version}
-BuildRequires:	llvm-static = %{version}
+# For gpg source verification
+BuildRequires:	gnupg2
+
+Requires: clang-resource-filesystem%{?isa} = %{version}
 
 %description
 The compiler-rt project is a part of the LLVM project. It provides
@@ -28,7 +33,8 @@ code generation, sanitizer runtimes and profiling library for code
 instrumentation, and Blocks C language extension.
 
 %prep
-%autosetup -n %{crt_srcdir} -p1
+%autosetup -n %{crt_srcdir} -p2
+pathfix.py -i %{__python3} -pn lib/hwasan/scripts/hwasan_symbolize
 
 %build
 mkdir -p _build
@@ -42,8 +48,8 @@ cd _build
 %else
 	-DLLVM_LIBDIR_SUFFIX= \
 %endif
-	-DCOMPILER_RT_INCLUDE_TESTS:BOOL=OFF # could be on?
-
+	-DCOMPILER_RT_INCLUDE_TESTS:BOOL=OFF \
+	-DCMAKE_SKIP_RPATH:BOOL=ON
 %make_build
 
 %install
@@ -65,7 +71,8 @@ do
 	ln -s ../$i linux/$i
 done
 popd
-
+# multilib support: also create symlink from lib to lib64, fixes rhbz#1678240
+# the symlinks will be dangling if the 32 bits version is not installed, but that should be fine
 %ifarch %{ix86}
 %post
 if test "`uname -m`" = x86_64
@@ -93,16 +100,26 @@ fi
 %endif
 
 %check
-#make check-all -C _build
+
+#%%cmake_build --target check-compiler-rt
 
 %files
+%license LICENSE.TXT
 %{_includedir}/*
-%{_libdir}/clang/%{version}
+%{_libdir}/clang/%{version}/lib/*
+%{_libdir}/clang/%{version}/share/*
 %ifarch x86_64 aarch64
 %{_bindir}/hwasan_symbolize
 %endif
 
 %changelog
+* Tue Nov 29 2022 jchzhou <zhoujiacheng@iscas.ac.cn> - 13.0.1-1
+- Update to 13.0.1
+- Remove rpath
+
+* Mon Dec 27 2021 Chen Chen <chen_aka_jan@163.com> - 12.0.1-1
+- Update to 12.0.1
+
 * Fri Sep 25 2020 Guoshuai Sun <sunguoshuai@huawei.com> - 10.0.1-3
 - hwasan_symbolize should run in python2 and python3, and python3 is default now
 
