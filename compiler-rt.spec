@@ -4,7 +4,7 @@
 
 Name:		compiler-rt
 Version:	12.0.1
-Release:	1
+Release:	2
 Summary:	LLVM "compiler-rt" runtime libraries
 
 License:	NCSA or MIT
@@ -23,6 +23,7 @@ BuildRequires:	python3-devel
 BuildRequires:	llvm-devel = %{version}
 # For gpg source verification
 BuildRequires:	gnupg2
+BuildRequires:	chrpath
 
 Requires: clang-resource-filesystem%{?isa} = %{version}
 
@@ -56,6 +57,11 @@ cd _build
 cd _build
 %make_install
 
+# delete run path in DSO
+for file in `find %{buildroot}%{_prefix} -name "lib*.so*"`; do
+	chrpath -d $file
+done
+
 # move blacklist/abilist files to where clang expect them
 mkdir -p %{buildroot}%{_libdir}/clang/%{version}/share
 mv -v %{buildroot}%{_datadir}/*list.txt  %{buildroot}%{_libdir}/clang/%{version}/share/
@@ -71,6 +77,7 @@ do
 	ln -s ../$i linux/$i
 done
 popd
+
 # multilib support: also create symlink from lib to lib64, fixes rhbz#1678240
 # the symlinks will be dangling if the 32 bits version is not installed, but that should be fine
 %ifarch %{ix86}
@@ -113,6 +120,9 @@ fi
 %endif
 
 %changelog
+* Tue Dec 20 2022 eastb233 <xiezhiheng@huawei.com> - 12.0.1-2
+- Delete run path in DSO
+
 * Mon Dec 27 2021 Chen Chen <chen_aka_jan@163.com> - 12.0.1-1
 - Update to 12.0.1
 
