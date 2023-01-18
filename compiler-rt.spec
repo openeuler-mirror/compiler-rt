@@ -3,7 +3,7 @@
 %global optflags %(echo %{optflags} -Dasm=__asm__)
 
 Name:		compiler-rt
-Version:	13.0.1
+Version:	14.0.5
 Release:	1
 Summary:	LLVM "compiler-rt" runtime libraries
 
@@ -11,7 +11,7 @@ License:	NCSA or MIT
 URL:		http://llvm.org
 Source0:	https://github.com/llvm/llvm-project/releases/download/llvmorg-%{version}/%{crt_srcdir}.tar.xz
 Source2:	tstellar-gpg-key.asc
-Patch0:		0001-PATCH-compiler-rt-Workaround-libstdc-limitation-wrt..patch
+Patch0:		add-llvm-cmake-package.patch
 
 BuildRequires:	gcc
 BuildRequires:	gcc-c++
@@ -113,6 +113,9 @@ fi
 %endif
 
 %changelog
+* Fri Nov 11 2022 jchzhou <zhoujiacheng@iscas.ac.cn> - 14.0.5-1
+- Update to 14.0.5
+
 * Tue Nov 29 2022 jchzhou <zhoujiacheng@iscas.ac.cn> - 13.0.1-1
 - Update to 13.0.1
 - Remove rpath
