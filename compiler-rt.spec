@@ -1,20 +1,19 @@
+%global toolchain clang
+
 %global crt_srcdir compiler-rt-%{version}%{?rc_ver:rc%{rc_ver}}.src
 %global optflags %(echo %{optflags} -D_DEFAULT_SOURCE)
 %global optflags %(echo %{optflags} -Dasm=__asm__)
 
 Name:		compiler-rt
-Version:	13.0.1
+Version:	15.0.7
 Release:	1
 Summary:	LLVM "compiler-rt" runtime libraries
 
 License:	NCSA or MIT
 URL:		http://llvm.org
 Source0:	https://github.com/llvm/llvm-project/releases/download/llvmorg-%{version}/%{crt_srcdir}.tar.xz
-Source2:	tstellar-gpg-key.asc
-Patch0:		0001-PATCH-compiler-rt-Workaround-libstdc-limitation-wrt..patch
 
-BuildRequires:	gcc
-BuildRequires:	gcc-c++
+BuildRequires:	clang
 BuildRequires:	cmake
 BuildRequires:	ninja-build
 BuildRequires:	python3
@@ -41,7 +40,7 @@ mkdir -p _build
 cd _build
 %cmake .. \
 	-DCMAKE_BUILD_TYPE=RelWithDebInfo \
-	-DLLVM_CONFIG_PATH:FILEPATH=%{_bindir}/llvm-config-%{__isa_bits} \
+	-DCMAKE_MODULE_PATH=%{_libdir}/cmake/llvm \
 	\
 %if 0%{?__isa_bits} == 64
 	-DLLVM_LIBDIR_SUFFIX=64 \
@@ -113,6 +112,12 @@ fi
 %endif
 
 %changelog
+* Thu Jan 12 2023 jchzhou <zhoujiacheng@iscas.ac.cn> - 15.0.7-1
+- Update to 15.0.7
+
+* Fri Nov 11 2022 jchzhou <zhoujiacheng@iscas.ac.cn> - 14.0.5-1
+- Update to 14.0.5
+
 * Tue Nov 29 2022 jchzhou <zhoujiacheng@iscas.ac.cn> - 13.0.1-1
 - Update to 13.0.1
 - Remove rpath
