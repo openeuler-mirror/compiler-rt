@@ -1,17 +1,42 @@
+%bcond_with sys_llvm
+%bcond_without check
+
+%global maj_ver 12
+%global min_ver 0
+%global patch_ver 1
+
+%if %{with sys_llvm}
+%global pkg_name compiler-rt
+%global install_prefix %{_prefix}
+%else
+%global pkg_name compiler-rt%{maj_ver}
+%global install_prefix %{_libdir}/llvm%{maj_ver}
+%endif
+
+%global install_bindir %{install_prefix}/bin
+%if 0%{?__isa_bits} == 64
+%global install_libdir %{install_prefix}/lib64
+%else
+%global install_libdir %{install_prefix}/lib
+%endif
+%global install_includedir %{install_prefix}/include
+%global install_sharedir %{install_prefix}/share
+
+%global crt_version %{maj_ver}.%{min_ver}.%{patch_ver}
 %global crt_srcdir compiler-rt-%{version}%{?rc_ver:rc%{rc_ver}}.src
 %global optflags %(echo %{optflags} -D_DEFAULT_SOURCE)
 %global optflags %(echo %{optflags} -Dasm=__asm__)
 
-Name:		compiler-rt
-Version:	12.0.1
-Release:	2
+Name:		%{pkg_name}
+Version:	%{crt_version}
+Release:	3
 Summary:	LLVM "compiler-rt" runtime libraries
 
 License:	NCSA or MIT
 URL:		http://llvm.org
 Source0:	https://github.com/llvm/llvm-project/releases/download/llvmorg-%{version}/%{crt_srcdir}.tar.xz
-Source2:	tstellar-gpg-key.asc
-Patch0:		0001-PATCH-compiler-rt-Workaround-libstdc-limitation-wrt..patch
+
+Patch1:		0001-PATCH-compiler-rt-Workaround-libstdc-limitation-wrt..patch
 
 BuildRequires:	gcc
 BuildRequires:	gcc-c++
@@ -20,12 +45,16 @@ BuildRequires:	ninja-build
 BuildRequires:	python3
 # We need python3-devel for pathfix.py.
 BuildRequires:	python3-devel
+%if %{with sys_llvm}
 BuildRequires:	llvm-devel = %{version}
-# For gpg source verification
-BuildRequires:	gnupg2
-BuildRequires:	chrpath
+BuildRequires:	llvm-test = %{version}
+Requires:       clang-resource-filesystem%{?isa} = %{version}
+%else
+BuildRequires:	llvm%{maj_ver}-devel = %{version}
+BuildRequires:	llvm%{maj_ver}-test = %{version}
+Requires:       clang%{maj_ver}-resource-filesystem%{?isa} = %{version}
+%endif
 
-Requires: clang-resource-filesystem%{?isa} = %{version}
 
 %description
 The compiler-rt project is a part of the LLVM project. It provides
@@ -38,12 +67,16 @@ instrumentation, and Blocks C language extension.
 pathfix.py -i %{__python3} -pn lib/hwasan/scripts/hwasan_symbolize
 
 %build
+# Copy CFLAGS into ASMFLAGS, so -fcf-protection is used when compiling assembly files.
+export ASMFLAGS=$CFLAGS
 mkdir -p _build
 cd _build
-%cmake .. \
+%cmake  .. \
 	-DCMAKE_BUILD_TYPE=RelWithDebInfo \
-	-DLLVM_CONFIG_PATH:FILEPATH=%{_bindir}/llvm-config-%{__isa_bits} \
-	\
+    -DCMAKE_INSTALL_PREFIX=%{install_prefix} \
+	-DCMAKE_MODULE_PATH=%{install_libdir}/cmake/llvm \
+    -DLLVM_CONFIG_PATH=%{install_bindir}/llvm-config \
+	-DCMAKE_SKIP_RPATH:BOOL=ON \
 %if 0%{?__isa_bits} == 64
 	-DLLVM_LIBDIR_SUFFIX=64 \
 %else
@@ -57,21 +90,17 @@ cd _build
 cd _build
 %make_install
 
-# delete run path in DSO
-for file in `find %{buildroot}%{_prefix} -name "lib*.so*"`; do
-	chrpath -d $file
-done
 
 # move blacklist/abilist files to where clang expect them
-mkdir -p %{buildroot}%{_libdir}/clang/%{version}/share
-mv -v %{buildroot}%{_datadir}/*list.txt  %{buildroot}%{_libdir}/clang/%{version}/share/
+mkdir -p %{buildroot}%{install_libdir}/clang/%{version}/share
+mv -v %{buildroot}%{install_sharedir}/*list.txt  %{buildroot}%{install_libdir}/clang/%{version}/share/
 
 # move sanitizer libs to better place
 %global libclang_rt_installdir lib/linux
-mkdir -p %{buildroot}%{_libdir}/clang/%{version}/lib
-mv -v %{buildroot}%{_prefix}/%{libclang_rt_installdir}/*clang_rt* %{buildroot}%{_libdir}/clang/%{version}/lib
-mkdir -p %{buildroot}%{_libdir}/clang/%{version}/lib/linux/
-pushd %{buildroot}%{_libdir}/clang/%{version}/lib
+mkdir -p %{buildroot}%{install_libdir}/clang/%{version}/lib
+mv -v %{buildroot}%{install_prefix}/%{libclang_rt_installdir}/*clang_rt* %{buildroot}%{install_libdir}/clang/%{version}/lib
+mkdir -p %{buildroot}%{install_libdir}/clang/%{version}/lib/linux/
+pushd %{buildroot}%{install_libdir}/clang/%{version}/lib
 for i in *.a *.so
 do
 	ln -s ../$i linux/$i
@@ -84,7 +113,7 @@ popd
 %post
 if test "`uname -m`" = x86_64
 then
-	cd %{_libdir}/clang/%{version}/lib
+	cd %{install_libdir}/clang/%{version}/lib
 	mkdir -p ../../../../lib64/clang/%{version}/lib
 	for i in *.a *.so
 	do
@@ -96,7 +125,7 @@ fi
 
 if test "`uname -m`" = x86_64
 then
-	cd %{_libdir}/clang/%{version}/lib
+	cd %{install_libdir}/clang/%{version}/lib
 	for i in *.a *.so
 	do
 		rm ../../../../lib64/clang/%{version}/lib/$i
@@ -112,14 +141,17 @@ fi
 
 %files
 %license LICENSE.TXT
-%{_includedir}/*
-%{_libdir}/clang/%{version}/lib/*
-%{_libdir}/clang/%{version}/share/*
+%{install_includedir}/*
+%{install_libdir}/clang/%{version}/lib/*
+%{install_libdir}/clang/%{version}/share/*
 %ifarch x86_64 aarch64
-%{_bindir}/hwasan_symbolize
+%{install_bindir}/hwasan_symbolize
 %endif
 
 %changelog
+* Thu Jul 20 2023 cf0zhao <zhaochuanfeng@huawei.com> - 12.0.1-3
+- Change the install path.
+
 * Tue Dec 20 2022 eastb233 <xiezhiheng@huawei.com> - 12.0.1-2
 - Delete run path in DSO
 
