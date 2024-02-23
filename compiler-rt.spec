@@ -27,7 +27,7 @@
 
 Name:		%{pkg_name}
 Version:	%{crt_version}
-Release:	1
+Release:	2
 Summary:	LLVM "compiler-rt" runtime libraries
 
 License:	NCSA or MIT
@@ -96,17 +96,20 @@ cd _build
 
 %files
 %license LICENSE.TXT
-%ifarch x86_64 aarch64
+%ifarch x86_64 aarch64 riscv64
 %{install_libdir}/clang/%{maj_ver}/bin/*
 %endif
 %{install_libdir}/clang/%{maj_ver}/include/*
 %{install_libdir}/clang/%{maj_ver}/lib/*
 %{install_libdir}/clang/%{maj_ver}/share/*
-%ifarch x86_64 aarch64
+%ifarch x86_64 aarch64 riscv64
 %{install_libdir}/clang/%{maj_ver}/bin/hwasan_symbolize
 %endif
 
 %changelog
+* Fri Feb 23 2024 jchzhou <zhoujiacheng@iscas.ac.cn> - 17.0.6-2
+- Fix an unpackaged file issue on riscv64
+
 * Tue Dec 5 2023 zhoujing <zhoujing106@huawei.com> - 17.0.6-1
 - Update to 17.0.6
 
